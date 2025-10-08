@@ -1,7 +1,7 @@
 #include <WiFi.h>
 
-const char* ssid = "Your_SSID"; // Replace with your WiFi SSID
-const char* password = "Your_PASSWORD"; // Replace with your WiFi Password
+const char* ssid = "1234"; // Replace with your WiFi SSID
+const char* password = "4321"; // Replace with your WiFi Password
 const char* serverIP = "SERVER_IP_ADDRESS"; // Replace with the server's IP address
 
 void setup() {
