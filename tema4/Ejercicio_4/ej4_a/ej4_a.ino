@@ -9,7 +9,7 @@ Adafruit_SGP30 sgp;
 
 // Intervalos
 const float intervalo_lectura = 0.1;   // segundos
-const float intervalo_media = 5.0;     // segundos
+const float intervalo_media = 1.0;     // segundos
 const int num_muestras = intervalo_media / intervalo_lectura; // 50 lecturas
 
 // Variables acumuladoras

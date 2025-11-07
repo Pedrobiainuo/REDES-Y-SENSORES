@@ -18,7 +18,7 @@ fig, ax = plt.subplots()
 line_co2, = ax.plot([], [], label="CO₂ (ppm)")
 line_tvoc, = ax.plot([], [], label="TVOC (ppb)")
 ax.legend()
-ax.set_xlabel("Muestras (cada 5 s)")
+ax.set_xlabel("Muestras (cada 1 s)")
 ax.set_ylabel("Valor medio")
 ax.set_title("Lecturas del SGP30")
 
