@@ -1,30 +1,27 @@
-from paho.mqtt.client import Client, CallbackAPIVersion
+import paho.mqtt.client as mqtt
 
 BROKER = "10.42.0.1"
-PORT = 1883
 TOPIC = "test1"
 
-# ---- CALLBACKS CORRECTOS PARA PAHO-MQTT 2.x ----
-
-def on_connect(client, userdata, flags, reason_code, properties):
-    print("Conectado al broker. Código:", reason_code)
+# Callback cuando se conecta al broker
+def on_connect(client, userdata, flags, rc):
+    print("Conectado al broker con código:", rc)
     client.subscribe(TOPIC)
     print(f"Suscrito al topic: {TOPIC}")
 
+# Callback cuando se recibe un mensaje
 def on_message(client, userdata, msg):
     print(f"Mensaje recibido en {msg.topic}: {msg.payload.decode()}")
 
-# ---- CLIENTE ----
-
-client = Client(
-    client_id="PythonSubscriber",
-    callback_api_version=CallbackAPIVersion.VERSION1
-)
+# Crear cliente MQTT (simple en paho-mqtt 1.6.1)
+client = mqtt.Client("PythonSubscriber")
 
 client.on_connect = on_connect
 client.on_message = on_message
 
+# Conectar al broker
 print("Conectando al broker MQTT...")
-client.connect(BROKER, PORT)
+client.connect(BROKER, 1883, 60)
 
+# Bucle infinito para escuchar los mensajes
 client.loop_forever()
