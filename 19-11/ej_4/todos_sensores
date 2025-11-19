@@ -1,0 +1,75 @@
+import json
+import time
+import paho.mqtt.client as mqtt
+
+BROKER = "10.42.0.1"
+PORT = 1883
+TOPIC = "Enviromental Sensors Network"   # mismo topic usado en el sketch
+OWN_ID = "B8"                            # ID del sensor local (ajusta si hace falta)
+
+# Guarda el último mensaje de cada sensor: { id: { "time": ..., "data": {...} } }
+sensors = {}
+
+def print_sensor(id_, entry):
+    t = entry.get("time", entry["data"].get("Tiempo_UTC", "unknown"))
+    data = entry["data"]
+    # Muestra campos conocidos si existen
+    co2 = data.get("CO2_ppm", "N/A")
+    tvoc = data.get("TVOC_ppb", "N/A")
+    co = data.get("CO_ppm", "N/A")
+    print(f"[{t}] ID={id_}  CO2_ppm={co2}  TVOC_ppb={tvoc}  CO_ppm={co}")
+
+def on_connect(client, userdata, flags, rc):
+    print("Conectado al broker, código:", rc)
+    client.subscribe(TOPIC)
+    print("Suscrito a:", TOPIC)
+
+def on_message(client, userdata, msg):
+    payload = msg.payload.decode(errors="ignore")
+    try:
+        data = json.loads(payload)
+    except Exception:
+        # payload no es JSON válido
+        print("Mensaje no JSON recibido:", payload)
+        return
+
+    sensor_id = data.get("ID", None)
+    timestamp = data.get("Tiempo_UTC", time.strftime("%Y-%j-%H:%M:%S", time.gmtime()))
+    if not sensor_id:
+        print("JSON sin campo ID:", data)
+        return
+
+    # Guardar último valor
+    sensors[sensor_id] = {"time": timestamp, "data": data}
+
+    # 2) Mostrar datos de mi sensor (OWN_ID) cuando lleguen
+    if sensor_id == OWN_ID:
+        print(">>> Lectura propia (OWN_ID):")
+        print_sensor(sensor_id, sensors[sensor_id])
+
+    # 3) Además, mostrar la lectura recibida (otros sensores)
+    else:
+        print("Lectura de otro sensor recibida:")
+        print_sensor(sensor_id, sensors[sensor_id])
+
+    # Opcional: mostrar resumen breve de todos los sensores guardados
+    print("-- Resumen actual de sensores guardados --")
+    for sid, entry in sensors.items():
+        print(f"  {sid}: CO2={entry['data'].get('CO2_ppm','N/A')}  CO={entry['data'].get('CO_ppm','N/A')}")
+    print("------------------------------------------")
+
+def main():
+    client = mqtt.Client(client_id=f"py-subscriber-{int(time.time())}")
+    client.on_connect = on_connect
+    client.on_message = on_message
+
+    try:
+        client.connect(BROKER, PORT, 60)
+    except Exception as e:
+        print("Error conectando al broker:", e)
+        return
+
+    client.loop_forever()
+
+if __name__ == "__main__":
+    main()
